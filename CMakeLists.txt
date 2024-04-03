@@ -1,12 +1,21 @@
-﻿# CMakeList.txt: проект CMake для 4_sem_Lab2; включите исходный код и определения,
+﻿# CMakeList.txt: проект CMake для Lab1; включите исходный код и определения,
 # укажите здесь логику для конкретного проекта.
 #
+project(4_sem_Lab2 CXX)
+
+set(CMAKE_CXX_STANDARD 23)
+
+# Специфичные настройки для компилятора Visual Studio
+if(MSVC)
+    # Включаем высокий уровень предупреждений
+    if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
+        string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+    endif()
+endif()
 
 # Добавьте источник в исполняемый файл этого проекта.
 add_executable (4_sem_Lab2 "4_sem_Lab2.cpp" "4_sem_Lab2.h")
-
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET 4_sem_Lab2 PROPERTY CXX_STANDARD 20)
-endif()
 
 # TODO: Добавьте тесты и целевые объекты, если это необходимо.

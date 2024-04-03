@@ -7,6 +7,10 @@ using namespace std;
 
 int main()
 {
-	cout << "Hello CMake." << endl;
+	My_unordered_map<int> My_class(15);
+
+	My_class.ptint();
+
+
 	return 0;
 }
