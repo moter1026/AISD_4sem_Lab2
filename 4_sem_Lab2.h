@@ -36,11 +36,15 @@ class My_unordered_map {
 			return *this;
 		}
 
-		Pair() = default;
+		Pair() : _key(-1), _value(0) {};
 		Pair(int key, M value) : _key(key), _value(value) {};
 		Pair(const Pair& obj) {
 			this->_key = obj.getKey();
 			this->_value = obj.getValue();
+		}
+		~Pair() {
+			this->_key = 0;
+			this->_value = 0;
 		}
 
 		friend std::ostream& operator<<(std::ostream& stream, const Pair<M>& pair) {
@@ -51,7 +55,7 @@ class My_unordered_map {
 	
 	
 
-	int A = 10000;
+	int A = 677;
 	// Определяю размер машинного слова
 	size_t MACHINE_WORD = sizeof(size_t);
 
@@ -61,7 +65,13 @@ class My_unordered_map {
 public:
 	size_t getSize() const { return this->_size; }
 	Pair<T> getPair(size_t index) const { return this->_arr_pair[index]; }
-	int hash(int key) { return std::floor(this->_size * ((this->A / this->MACHINE_WORD * key) % 1)); }
+	int hash(int key) {
+		double n;
+
+		double A_machine_word_and_key = (double(this->A) / this->MACHINE_WORD * key);
+		double modf = std::modf(A_machine_word_and_key, &n);
+		return std::floor(this->_size * (modf));
+	}
 	void ptint() const{
 		std::cout << GREEN_TEXT << "Hash table with size = " << this->getSize() << " and method 'open andress'." << RESET_TEXT <<std::endl;
 		
@@ -76,6 +86,24 @@ public:
 			// Данные
 			std::cout << std::setw(15) << std::left << i
 				<< std::setw(1) << std::left << this->getPair(i) << std::endl;
+		}
+	}
+	void insert(int key, T value) {
+		int index = this->hash(key);
+
+		for (size_t i = index; i < this->getSize(); ++i)
+		{
+			if (this->_arr_pair[i].getKey() == -1) {
+				this->_arr_pair[i] = Pair(key, value);
+				return;
+			}
+		}
+		for (size_t i = 0; i < index; ++i)
+		{
+			if (this->_arr_pair[i].getKey() == -1) {
+				this->_arr_pair[i] = Pair(key, value);
+				return;
+			}
 		}
 	}
 
