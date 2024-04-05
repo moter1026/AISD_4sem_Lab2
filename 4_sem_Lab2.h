@@ -7,6 +7,7 @@
 #include <cmath>
 #include <iomanip>
 #include <exception>
+#include <random>
 
 #define COUNT_ROME_SYMBOLS 7
 
@@ -84,7 +85,7 @@ class My_unordered_map {
 	Pair<char, int>* ROME_EQUAL = setRomeEqual();
 
 	Pair<char, int>* setRomeEqual() {
-		const char* symbols = "IVXLCDM";
+		std::string symbols = "IVXLCDM";
 		int values[7]{ 1, 5, 10, 50, 100, 500, 1000 };
 
 		Pair<char, int>* rome_equal = new Pair<char, int>[COUNT_ROME_SYMBOLS];
@@ -105,7 +106,7 @@ class My_unordered_map {
 		}
 		return -1;
 	}
-	int toArabian(const char* rome_number) {
+	int toArabian(std::string rome_number) {
 		int res_number = 0;
 		for (size_t i = 0; rome_number[i] != '\0'; ++i)
 		{
@@ -124,6 +125,21 @@ class My_unordered_map {
 			}
 		}
 		return res_number;
+	}
+	std::string arabicToRome(int number) {
+		const int arabicNums[] = { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
+		const std::string romanNums[] = { "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
+
+		std::string result = "";
+
+		for (int i = 0; i < 13; i++) {
+			while (number >= arabicNums[i]) {
+				result += romanNums[i];
+				number -= arabicNums[i];
+			}
+		}
+
+		return result;
 	}
 
 	// Возвращает индекс первого эл-та, имеющий ключ key
@@ -157,7 +173,7 @@ public:
 		double modf = std::modf(A_machine_word_and_key, &n);
 		return std::floor(this->_size * (modf));
 	}
-	int hash(const char* rome_number) {
+	int hash(std::string rome_number) {
 		size_t number = this->toArabian(rome_number);
 
 		double n;
@@ -232,7 +248,6 @@ public:
 		}
 		return nullptr;
 	}
-
 	void insert(K key, V value) {
 		int index = this->hash(key);
 
@@ -251,6 +266,18 @@ public:
 			}
 		}
 		return;
+	}
+	void random_insert() {
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> dis(1, 100);
+
+		for (size_t i = 0; i < this->getSize(); ++i)
+		{
+			int rand = dis(gen);
+			std::string rome_number = arabicToRome(rand);
+			insert(rome_number, rand);
+		}
 	}
 	// Вставляет эл-т, если до этого не было эл-тов с таким ключём.
 	// Иначе заменяет у существующего эл-та значение value

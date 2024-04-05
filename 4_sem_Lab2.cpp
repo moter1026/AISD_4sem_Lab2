@@ -58,26 +58,54 @@ int main()
 
 		std::cout << "\n\n";
 		std::cout << YELLOW_TEXT << "Пытаюсь вставить эл-нт через метод insert_or_assign" << RESET_TEXT << std::endl;
-		My_class.insert_or_assign(444, 4444);
-		My_class.print();
+		My_class2.insert_or_assign(444, 4444);
+		My_class2.print();
 		std::cout << "\n";
 		std::cout << YELLOW_TEXT << "Теперь метод insert_or_assign должен заменить эл-нт с существующим ключём" << RESET_TEXT << std::endl;
-		My_class.insert_or_assign(444, 5555);
-		My_class.print();
+		My_class2.insert_or_assign(444, 5555);
+		My_class2.print();
+
+
+		My_unordered_map<int, int> My_class3(My_class2);
+
+		std::cout << YELLOW_TEXT << "Приравниваем My_class3 к My_class2 через конструктор копирования" << RESET_TEXT << std::endl;
+		std::cout << YELLOW_TEXT << "My_class3 :" << RESET_TEXT << std::endl;
+		My_class3.print();
+
+		My_class3.erase(333);
+		std::cout << "После удаления эл-та с ключём 333 в My_class3. My_class3:" << std::endl;
+		My_class3.print();
+		std::cout << "После удаления эл-та в My_class3. My_class2:" << std::endl;
+		My_class2.print();
+
+		std::cout << "\n\n";
+		std::cout << YELLOW_TEXT << "Пытаюсь вставить эл-нт через метод insert_or_assign" << RESET_TEXT << std::endl;
+		My_class3.insert_or_assign(777, 7007);
+		My_class3.print();
+		std::cout << "\n";
+		std::cout << YELLOW_TEXT << "Теперь метод insert_or_assign должен заменить эл-нт с существующим ключём" << RESET_TEXT << std::endl;
+		My_class3.insert_or_assign(777, 2024);
+		My_class3.print();
 
 
 		std::cout << "\n\n\n\n";
 		std::cout << GREEN_TEXT << "Задание по варианту" << RESET_TEXT << std::endl;
-		My_unordered_map<const char*, int>  Task(5);
+		My_unordered_map<std::string, int>  Task(10);
 
 		Task.insert("XVIII", 18);
 		Task.insert("DCXLIX", 649);
 		Task.insert("XIX", 19);
 		Task.insert("MMMCM", 3900);
 		Task.insert("XXXIV", 34);
+		Task.insert("XIX", 190);
 
 		Task.print();
 
+		std::cout << "\n\n\n\n";
+		std::cout << GREEN_TEXT << "Заполняем рандомными Римскими числами нашу хэш таблицу" << RESET_TEXT << std::endl;
+		My_unordered_map<std::string, int>  Task2(20);
+		Task2.random_insert();
+		Task2.print();
 		return 0;
 	}
 	catch (std::runtime_error err) {
