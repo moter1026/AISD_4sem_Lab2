@@ -98,7 +98,7 @@ class My_unordered_map {
 		return rome_equal;
 	}
 	int getIndexInRomeNumber(const char symb) {
-		for (size_t i = 0; i < COUNT_ROME_SYMBOLS - 1; ++i)
+		for (size_t i = 0; i < COUNT_ROME_SYMBOLS; ++i)
 		{
 			if (symb == *(ROME_EQUAL[i].getKey())) {
 				return i;
@@ -106,41 +106,7 @@ class My_unordered_map {
 		}
 		return -1;
 	}
-	int toArabian(std::string rome_number) {
-		int res_number = 0;
-		for (size_t i = 0; rome_number[i] != '\0'; ++i)
-		{
-			char now_symb = rome_number[i];
-			char next_symb = rome_number[i+1];
-			if (getIndexInRomeNumber(next_symb) != -1 &&
-				getIndexInRomeNumber(now_symb) == getIndexInRomeNumber(next_symb) - 1)
-			{
-				res_number += *(ROME_EQUAL[getIndexInRomeNumber(next_symb)].getValue()) -
-					*(ROME_EQUAL[getIndexInRomeNumber(now_symb)].getValue());
-				now_symb = next_symb;
-				++i;
-			}
-			else if (getIndexInRomeNumber(now_symb) != -1) {
-				res_number += *(ROME_EQUAL[getIndexInRomeNumber(now_symb)].getValue());
-			}
-		}
-		return res_number;
-	}
-	std::string arabicToRome(int number) {
-		const int arabicNums[] = { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
-		const std::string romanNums[] = { "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
-
-		std::string result = "";
-
-		for (int i = 0; i < 13; i++) {
-			while (number >= arabicNums[i]) {
-				result += romanNums[i];
-				number -= arabicNums[i];
-			}
-		}
-
-		return result;
-	}
+	
 
 	// Возвращает индекс первого эл-та, имеющий ключ key
 	size_t at(K key) const{
@@ -166,6 +132,49 @@ public:
 	size_t getSize() const noexcept { return this->_size; }
 	Pair<K, V>& getPair(size_t index) const noexcept { return this->_arr_pair[index]; }
 	
+	int toArabian(std::string rome_number) {
+		int res_number = 0;
+		for (size_t i = 0; rome_number[i] != '\0'; ++i)
+		{
+			char now_symb = rome_number[i];
+			char next_symb = rome_number[i + 1];
+			// 1,2,4 - индексы символов I,X,C, которые могут стоять перед большим числом, уменьшая его
+			int now_ind = getIndexInRomeNumber(now_symb);
+			int next_ind = getIndexInRomeNumber(next_symb);
+			if (next_ind != -1 &&
+				(now_ind == 0 ||
+					now_ind == 2 ||
+					now_ind == 4) &&
+				(now_ind == next_ind - 1 ||
+					now_ind == next_ind - 2))
+			{
+				res_number += *(ROME_EQUAL[next_ind].getValue()) -
+					*(ROME_EQUAL[now_ind].getValue());
+				now_symb = next_symb;
+				++i;
+			}
+			else if (getIndexInRomeNumber(now_symb) != -1) {
+				res_number += *(ROME_EQUAL[now_ind].getValue());
+			}
+		}
+		return res_number;
+	}
+	std::string arabicToRome(int number) {
+		const int arabicNums[] = { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
+		const std::string romanNums[] = { "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
+
+		std::string result = "";
+
+		for (int i = 0; i < 13; i++) {
+			while (number >= arabicNums[i]) {
+				result += romanNums[i];
+				number -= arabicNums[i];
+			}
+		}
+
+		return result;
+	}
+
 	int hash(K key) const {
 		double n;
 

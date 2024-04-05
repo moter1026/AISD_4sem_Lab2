@@ -87,9 +87,15 @@ int main()
 		My_class3.insert_or_assign(777, 2024);
 		My_class3.print();
 
+		std::cout << "\n\n\n\n";
+		std::cout << GREEN_TEXT << "Заполняем рандомными Римскими числами нашу хэш таблицу" << RESET_TEXT << std::endl;
+		My_unordered_map<std::string, int>  Task2(20);
+		Task2.random_insert();
+		Task2.print();
+
 
 		std::cout << "\n\n\n\n";
-		std::cout << GREEN_TEXT << "Задание по варианту" << RESET_TEXT << std::endl;
+		std::cout << GREEN_TEXT << "Реализовал класс шаблонно, Можно передавать в виде строки римские числа" << RESET_TEXT << std::endl;
 		My_unordered_map<std::string, int>  Task(10);
 
 		Task.insert("XVIII", 18);
@@ -98,14 +104,19 @@ int main()
 		Task.insert("MMMCM", 3900);
 		Task.insert("XXXIV", 34);
 		Task.insert("XIX", 190);
-
 		Task.print();
 
 		std::cout << "\n\n\n\n";
-		std::cout << GREEN_TEXT << "Заполняем рандомными Римскими числами нашу хэш таблицу" << RESET_TEXT << std::endl;
-		My_unordered_map<std::string, int>  Task2(20);
-		Task2.random_insert();
-		Task2.print();
+		std::cout << LIGHT_BLUE_TEXT << "Задание по варианту (нужно перевести введённое пользователем римское число в арабский вид)" << RESET_TEXT << std::endl;
+		std::string rome_number = " ";
+		while (rome_number != "\n")
+		{
+			std::cout << YELLOW_TEXT << "Введите римское число заглавными латинскими буквами" << RESET_TEXT << std::endl;
+			std::cin >> rome_number;
+			if (rome_number == "exit") break;
+			std::cout << GREEN_TEXT << "Число " << rome_number << " в арабском виде = " << Task.toArabian(rome_number) << RESET_TEXT << std::endl;
+			std::cout << RED_TEXT << "\nДля выхода введите 'exit'" << RESET_TEXT << std::endl;
+		}
 		return 0;
 	}
 	catch (std::runtime_error err) {
