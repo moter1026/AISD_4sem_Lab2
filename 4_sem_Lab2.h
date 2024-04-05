@@ -8,6 +8,8 @@
 #include <iomanip>
 #include <exception>
 
+#define COUNT_ROME_SYMBOLS 7
+
 
 const char* BLACK_TEXT = "\033[30m";
 const char* RED_TEXT = "\033[31m";
@@ -20,87 +22,150 @@ const char* RESET_TEXT = "\033[0m";
 
 
 template<typename K, typename V>
-class My_unordered_map {
-	class Pair {
-		K _key;
-		V _value;
+class Pair {
+	K* _key;
+	V* _value;
 
-	public:
-		K& getKey() { return this->_key; }
-		V& getValue() { return this->_value; }
-		K getKey() const noexcept { return this->_key; }
-		V getValue() const noexcept { return this->_value; }
+public:
+	K* getKey() noexcept { return this->_key; }
+	V* getValue() noexcept { return this->_value; }
 
-		void setKey(K key) { this->_key = key;}
-		void setValue(V value) { this->_value = value; }
+	void setKey(K* key) { this->_key = key; }
+	void setValue(V* value) { this->_value = value; }
 
-		Pair& operator=(const Pair& obj_1) {
-			this->_key = obj_1.getKey();
-			this->_value = obj_1.getValue();
-
-			return *this;
+	Pair& operator=(const Pair<K, V>& obj_1) {
+		if (this != &obj_1) {
+			if (obj_1._key != nullptr) {
+				delete this->_key;
+				delete this->_value;
+				this->_key = new K(*obj_1._key);
+				this->_value = new V(*obj_1._value);
+			}
 		}
+		return *this;
+	}
 
-		Pair() : _key(-1), _value(0) {};
-		Pair(K key, V value) : _value(value) {
-			if (key < 0) throw std::runtime_error("Ключ не может быть меньше нуля");
-			this->_key = key;
-		};
-		Pair(const Pair& obj) {
-			this->_key = obj.getKey();
-			this->_value = obj.getValue();
-		}
-		~Pair() = default;
-
-		friend std::ostream& operator<<(std::ostream& stream, const Pair& pair) {
-			stream << "(" << pair.getKey() << "," << pair.getValue() << ")";
-			return stream;
-		}
+	Pair() : _key(nullptr), _value(nullptr) {};
+	Pair(K* key, V* value) : _value(value) {
+		this->_key = key;
 	};
-	
+	Pair(K key, V value) {
+		this->_key = new K(key);
+		this->_value = new V(value);
+	}
+	Pair(Pair& obj) {
+		this->_key = new K(*(obj.getKey()));
+		this->_value = new V(*(obj.getValue()));
+	}
+	~Pair() {
+		delete this->_key;
+		delete this->_value;
+	};
+
+	friend std::ostream& operator<<(std::ostream& stream, Pair& pair) {
+		if (pair.getKey() == nullptr) {
+			stream << "(" << pair.getKey() << "," << pair.getValue() << ")";
+		}
+		else {
+			stream << "(" << *(pair.getKey()) << "," << *(pair.getValue()) << ")";
+		}
+		return stream;
+	}
+};
+
+template<typename K, typename V>
+class My_unordered_map {
 	int A = 677;
 	// Определяю размер машинного слова
 	size_t MACHINE_WORD = sizeof(size_t);
-	Pair* _arr_pair;
+	Pair<K, V>* _arr_pair;
 	size_t _size;
 
-	// Возвращает индекс первого эл-та, имеющий ключ key
-	size_t at(K key) const{
-		checkKey(key);
+	Pair<char, int>* ROME_EQUAL = setRomeEqual();
 
-		size_t index = this->hash(key);
+	Pair<char, int>* setRomeEqual() {
+		const char* symbols = "IVXLCDM";
+		int values[7]{ 1, 5, 10, 50, 100, 500, 1000 };
 
-		for (size_t i = index; i < this->getSize(); ++i)
+		Pair<char, int>* rome_equal = new Pair<char, int>[COUNT_ROME_SYMBOLS];
+
+		for (size_t i = 0; i < COUNT_ROME_SYMBOLS; ++i)
 		{
-			if (this->_arr_pair[i].getKey() == key) {
-				return i;
-			}
+			rome_equal[i] = Pair(new char(symbols[i]), new V(values[i]));
 		}
-		for (size_t i = 0; i < index; ++i)
+
+		return rome_equal;
+	}
+	int getIndexInRomeNumber(const char symb) {
+		for (size_t i = 0; i < COUNT_ROME_SYMBOLS - 1; ++i)
 		{
-			if (this->_arr_pair[i].getKey() == key) {
+			if (symb == *(ROME_EQUAL[i].getKey())) {
 				return i;
 			}
 		}
 		return -1;
 	}
-	void checkKey(K key) const {
-		if (key >= 0) return;
-		throw std::runtime_error("Ключ не должен быть меньше нуля");
+	int toArabian(const char* rome_number) {
+		int res_number = 0;
+		for (size_t i = 0; rome_number[i] != '\0'; ++i)
+		{
+			char now_symb = rome_number[i];
+			char next_symb = rome_number[i+1];
+			if (getIndexInRomeNumber(next_symb) != -1 &&
+				getIndexInRomeNumber(now_symb) == getIndexInRomeNumber(next_symb) - 1)
+			{
+				res_number += *(ROME_EQUAL[getIndexInRomeNumber(next_symb)].getValue()) -
+					*(ROME_EQUAL[getIndexInRomeNumber(now_symb)].getValue());
+				now_symb = next_symb;
+				++i;
+			}
+			else if (getIndexInRomeNumber(now_symb) != -1) {
+				res_number += *(ROME_EQUAL[getIndexInRomeNumber(now_symb)].getValue());
+			}
+		}
+		return res_number;
+	}
+
+	// Возвращает индекс первого эл-та, имеющий ключ key
+	size_t at(K key) const{
+		size_t index = this->hash(key);
+
+		for (size_t i = index; i < this->getSize(); ++i)
+		{
+			if (this->_arr_pair[i].getKey() != nullptr &&
+				*(this->_arr_pair[i].getKey()) == key) {
+				return i;
+			}
+		}
+		for (size_t i = 0; i < index; ++i)
+		{
+			if (this->_arr_pair[i].getKey() != nullptr &&
+				*(this->_arr_pair[i].getKey()) == key) {
+				return i;
+			}
+		}
+		return -1;
 	}
 public:
 	size_t getSize() const noexcept { return this->_size; }
-	Pair& getPair(size_t index) const noexcept { return this->_arr_pair[index]; }
-	int hash(int key) const {
+	Pair<K, V>& getPair(size_t index) const noexcept { return this->_arr_pair[index]; }
+	
+	int hash(K key) const {
 		double n;
 
 		double A_machine_word_and_key = (double(this->A) / this->MACHINE_WORD * key);
 		double modf = std::modf(A_machine_word_and_key, &n);
 		return std::floor(this->_size * (modf));
 	}
-	/*int hash(std::string rome_number) const {
-		
-	}*/
+	int hash(const char* rome_number) {
+		size_t number = this->toArabian(rome_number);
+
+		double n;
+
+		double A_machine_word_and_key = (double(this->A) / this->MACHINE_WORD * number);
+		double modf = std::modf(A_machine_word_and_key, &n);
+		return std::floor(this->_size * (modf));
+	}
 	void print() const noexcept {
 		std::cout << GREEN_TEXT << "Hash table with size = " << this->getSize() << " and method 'open andress'." << RESET_TEXT <<std::endl;
 		
@@ -117,76 +182,70 @@ public:
 				<< std::setw(1) << std::left << this->getPair(i) << std::endl;
 		}
 	}
-
-	bool contains(K value) const {
+	bool contains(V value) const {
 		for (size_t i = 0; i < this->getSize(); ++i)
 		{
 			// Проверка на равенство значений и на то, чтобы ключ был валидным
-			if (this->_arr_pair[i].getValue() == value && 
-				this->_arr_pair[i].getKey() != -1) {
+			if (this->_arr_pair[i].getKey() != nullptr &&
+				*(this->_arr_pair[i].getValue()) == value) {
 				return true;
 			}
 		}
 		return false;
 	}
-	bool contains_key(int key) const {
-		checkKey(key);
-
-		if (this->at(key) != -1) return true;
-		return false;
-	}
-	bool contains(int key, K value) const {
-		checkKey(key);
-
+	bool contains(K key, K value) const {
 		int index = this->hash(key);
 
-		if (this->_arr_pair[index].getKey() == -1) {
+		if (this->_arr_pair[index].getKey() == nullptr) {
 			return false;
 		}
 
 		// Начинаем поиск с index, потому что более вероятно, что нужное
 		for (size_t i = index; i < this->getSize(); ++i)
 		{
-			if (this->_arr_pair[i].getKey() == key &&
-				this->_arr_pair[i].getValue() == value) {
+			if (this->_arr_pair[i].getKey() != nullptr &&
+				*(this->_arr_pair[i].getKey()) == key &&
+				*(this->_arr_pair[i].getValue()) == value) {
 				return true;
 			}
 		}
 		for (size_t i = 0; i < index; ++i)
 		{
-			if (this->_arr_pair[i].getKey() == key &&
-				this->_arr_pair[i].getValue() == value) {
+			if (this->_arr_pair[i].getKey() != nullptr &&
+				*(this->_arr_pair[i].getKey()) == key &&
+				*(this->_arr_pair[i].getValue()) == value) {
 				return true;
 			}
 		}
 		return false;
 	}
+	bool contains_key(K key) const {
+		if (this->at(key) != -1) return true;
+		return false;
+	}
 	V* search(K key) const {
-		checkKey(key);
 		size_t index = this->at(key);
 		if (index != -1) 
 		{
-			V& value = this->getPair(index).getValue();
-			return &value;
+			V* value = this->getPair(index).getValue();
+			return value;
 		}
 		return nullptr;
 	}
 
-	void insert(int key, K value) {
-		checkKey(key);
-
+	void insert(K key, V value) {
 		int index = this->hash(key);
 
 		for (size_t i = index; i < this->getSize(); ++i)
 		{
-			if (this->_arr_pair[i].getKey() == -1) {
+			if (this->_arr_pair[i].getKey() == nullptr) {
 				this->_arr_pair[i] = Pair(key, value);
 				return;
 			}
 		}
 		for (size_t i = 0; i < index; ++i)
 		{
-			if (this->_arr_pair[i].getKey() == -1) {
+			if (this->_arr_pair[i].getKey() == nullptr) {
 				this->_arr_pair[i] = Pair(key, value);
 				return;
 			}
@@ -196,8 +255,6 @@ public:
 	// Вставляет эл-т, если до этого не было эл-тов с таким ключём.
 	// Иначе заменяет у существующего эл-та значение value
 	void insert_or_assign(K key, V value) {
-		checkKey(key);
-
 		size_t index = this->at(key);
 		
 		if (index == -1) {
@@ -205,39 +262,39 @@ public:
 
 			for (size_t i = index; i < this->getSize(); ++i)
 			{
-				if (this->_arr_pair[i].getKey() == -1) {
-					this->_arr_pair[i] = Pair(key, value);
+				if (this->_arr_pair[i].getKey() == nullptr) {
+					this->_arr_pair[i] = Pair(new K(key), new V(value));
 					return;
 				}
 			}
 			for (size_t i = 0; i < index; ++i)
 			{
-				if (this->_arr_pair[i].getKey() == -1) {
-					this->_arr_pair[i] = Pair(key, value);
+				if (this->_arr_pair[i].getKey() == nullptr) {
+					this->_arr_pair[i] = Pair(new K(key), new V(value));
 					return;
 				}
 			}
 		}
-		this->getPair(index).setValue(value);
+		this->getPair(index).setValue(new V(value));
 	}
 	bool erase(K key) {
 		size_t index = this->at(key);
 
 		if (index != -1)
 		{
-			this->getPair(index).setKey(-1);
-			this->getPair(index).setValue(0);
+			this->getPair(index).setKey(nullptr);
+			this->getPair(index).setValue(nullptr);
 			return true;
 		}
 		return false;
 	}
 	int count(K key) const {
-		checkKey(key);
-
 		int count = 0;
 		for (size_t i = 0; i < this->getSize(); ++i)
 		{
-			if (this->_arr_pair[i].getKey() == key) {
+			if (this->_arr_pair[i].getKey() == nullptr) continue;
+			Pair<K, V> pair = this->_arr_pair[i];
+			if (*(pair.getKey()) == key) {
 				++count;
 			}
 		}
@@ -246,7 +303,7 @@ public:
 	
 	My_unordered_map& operator=(const My_unordered_map& obj) {
 		this->_size = obj.getSize();
-		this->_arr_pair = new Pair[this->_size];
+		this->_arr_pair = new Pair<K, V>[this->_size];
 
 		for (size_t i = 0; i < this->_size; ++i)
 		{
@@ -256,16 +313,17 @@ public:
 		return *this;
 	}
 
+
 	My_unordered_map() {
 		this->_size = 10;
-		this->_arr_pair = new Pair[this->_size];
+		this->_arr_pair = new Pair<K, V>[this->_size];
 	};
 	My_unordered_map(size_t size): _size(size) {
-		this->_arr_pair = new Pair[size];
+		this->_arr_pair = new Pair<K, V>[size];
 	}
 	My_unordered_map(const My_unordered_map& obj) {
 		this->_size = obj.getSize();
-		this->_arr_pair = new Pair[this->_size];
+		this->_arr_pair = new Pair<K, V>[this->_size];
 
 		for (size_t i = 0; i < this->_size; ++i)
 		{

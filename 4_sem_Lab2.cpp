@@ -2,10 +2,12 @@
 //
 #include <iostream>
 #include <unordered_map>
+#include <string>
 
 #include "4_sem_Lab2.h"
 
 using namespace std;
+
 
 int main()
 {
@@ -62,6 +64,20 @@ int main()
 		std::cout << YELLOW_TEXT << "Теперь метод insert_or_assign должен заменить эл-нт с существующим ключём" << RESET_TEXT << std::endl;
 		My_class.insert_or_assign(444, 5555);
 		My_class.print();
+
+
+		std::cout << "\n\n\n\n";
+		std::cout << GREEN_TEXT << "Задание по варианту" << RESET_TEXT << std::endl;
+		My_unordered_map<const char*, int>  Task(5);
+
+		Task.insert("XVIII", 18);
+		Task.insert("DCXLIX", 649);
+		Task.insert("XIX", 19);
+		Task.insert("MMMCM", 3900);
+		Task.insert("XXXIV", 34);
+
+		Task.print();
+
 		return 0;
 	}
 	catch (std::runtime_error err) {
